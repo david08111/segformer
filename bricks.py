@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from sync_bn.nn.modules import SynchronizedBatchNorm2d
+from .sync_bn.nn.modules import SynchronizedBatchNorm2d
 from functools import partial
 
 norm_layer = partial(SynchronizedBatchNorm2d, momentum=3e-4)

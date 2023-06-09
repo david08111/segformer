@@ -1,5 +1,5 @@
-from backbone import MixVisionTransformer
-from decoder import SegFormerHead
+from .backbone import MixVisionTransformer
+from .decoder import SegFormerHead
 import math
 
 import torch
@@ -24,7 +24,10 @@ class SegFormer(nn.Module):
         self.decoder_head = SegFormerHead(inChannels=embed_dims, feature_strides=feature_strides,
                                       dropout_ratio=0.1, act_layer=nn.ReLU, num_classes=num_classes,
                                       embed_dim=embed_dim, align_corners=align_corners)
-        
+
+        self.upsampler = torch.nn.Upsample(scale_factor=4, mode="nearest")
+        # self.upsampler = torch.nn.ConvTranspose2d(num_classes, num_classes, 4, stride=4)
+
         self.init_weights()
 
     def init_weights(self):
@@ -47,68 +50,69 @@ class SegFormer(nn.Module):
         enc_features = self.backbone(x)
         out = self.decoder_head(enc_features)
 
+        out = self.upsampler(out)
         return out
     
-from torchsummary import summary
-
-model = SegFormer()
-model.to('cuda')
-summary(model, (3,224,224), depth=2)
-
-# x = torch.randn((1,3,224,224))
-# y = model.forward(x)
-
-# for i in range(len(y)):
-#     print(y[i].shape)
-
-#%%
-ckpt = '/home/user01/data/talha/segformer/chkpts/segformer.b5.1024x1024.city.160k.pth'
-
-def load_pretrained_chkpt(model, pretrained_path=None):
-    if pretrained_path is not None:
-        chkpt = torch.load(pretrained_path,
-                            map_location='cuda' if torch.cuda.is_available() else 'cpu')
-        try:
-            # load pretrained
-            pretrained_dict = chkpt['state_dict']
-            # load model state dict
-            state = model.state_dict()
-            # loop over both dicts and make a new dict where name and the shape of new state match
-            # with the pretrained state dict.
-            matched, unmatched = [], []
-            new_dict = {}
-            for i, j in zip(pretrained_dict.items(), state.items()):
-                pk, pv = i # pretrained state dictionary
-                nk, nv = j # new state dictionary
-                # if name and weight shape are same
-                if pk.strip('module.') == nk.strip('module.') and pv.shape == nv.shape:
-                    new_dict[nk] = pv
-                    matched.append(pk)
-                else:
-                    unmatched.append(pk)
-
-            state.update(new_dict)
-            model.load_state_dict(state)
-            print('Pre-trained state loaded successfully...')
-            print(f'Mathed kyes: {len(matched)}, Unmatched Keys: {len(unmatched)}')
-        except:
-            print(f'ERROR in pretrained_dict @ {pretrained_path}')
-    else:
-        print('Enter pretrained_dict path.')
-    return matched, unmatched
-
-matched, unmatched = load_pretrained_chkpt(model, pretrained_path=ckpt)
-print(unmatched)
-
-'''
-Only the decoder keys that don't have the exact same name are creatgin mismatch error but 
-everything elese is according to the official implementation.'
-'''
-
-# chkpt = torch.load(ckpt,
-#                     map_location='cuda' if torch.cuda.is_available() else 'cpu')
-# pretrained_dict = chkpt['state_dict']
-# state = model.state_dict()
-# unmatched_keys = set(state.keys()) ^ set(pretrained_dict.keys())
-
-# print(unmatched_keys)
+# from torchsummary import summary
+#
+# model = SegFormer()
+# model.to('cuda')
+# summary(model, (3,224,224), depth=2)
+#
+# # x = torch.randn((1,3,224,224))
+# # y = model.forward(x)
+#
+# # for i in range(len(y)):
+# #     print(y[i].shape)
+#
+# #%%
+# ckpt = '/home/user01/data/talha/segformer/chkpts/segformer.b5.1024x1024.city.160k.pth'
+#
+# def load_pretrained_chkpt(model, pretrained_path=None):
+#     if pretrained_path is not None:
+#         chkpt = torch.load(pretrained_path,
+#                             map_location='cuda' if torch.cuda.is_available() else 'cpu')
+#         try:
+#             # load pretrained
+#             pretrained_dict = chkpt['state_dict']
+#             # load model state dict
+#             state = model.state_dict()
+#             # loop over both dicts and make a new dict where name and the shape of new state match
+#             # with the pretrained state dict.
+#             matched, unmatched = [], []
+#             new_dict = {}
+#             for i, j in zip(pretrained_dict.items(), state.items()):
+#                 pk, pv = i # pretrained state dictionary
+#                 nk, nv = j # new state dictionary
+#                 # if name and weight shape are same
+#                 if pk.strip('module.') == nk.strip('module.') and pv.shape == nv.shape:
+#                     new_dict[nk] = pv
+#                     matched.append(pk)
+#                 else:
+#                     unmatched.append(pk)
+#
+#             state.update(new_dict)
+#             model.load_state_dict(state)
+#             print('Pre-trained state loaded successfully...')
+#             print(f'Mathed kyes: {len(matched)}, Unmatched Keys: {len(unmatched)}')
+#         except:
+#             print(f'ERROR in pretrained_dict @ {pretrained_path}')
+#     else:
+#         print('Enter pretrained_dict path.')
+#     return matched, unmatched
+#
+# matched, unmatched = load_pretrained_chkpt(model, pretrained_path=ckpt)
+# print(unmatched)
+#
+# '''
+# Only the decoder keys that don't have the exact same name are creatgin mismatch error but
+# everything elese is according to the official implementation.'
+# '''
+#
+# # chkpt = torch.load(ckpt,
+# #                     map_location='cuda' if torch.cuda.is_available() else 'cpu')
+# # pretrained_dict = chkpt['state_dict']
+# # state = model.state_dict()
+# # unmatched_keys = set(state.keys()) ^ set(pretrained_dict.keys())
+#
+# # print(unmatched_keys)

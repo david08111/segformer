@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from sync_bn.nn.modules import SynchronizedBatchNorm2d
-from bricks import resize
+from .sync_bn.nn.modules import SynchronizedBatchNorm2d
+from .bricks import resize
 
 import numpy as np
 from functools import partial
@@ -43,7 +43,8 @@ class SegFormerHead(nn.Module):
         self.linear_c2 = MLP(inputDim=c2_in_channels, embed_dim=embed_dim)
         self.linear_c1 = MLP(inputDim=c1_in_channels, embed_dim=embed_dim)
 
-        self.linear_fuse = nn.Conv2d(embed_dim*4, embed_dim, kernel_size=3) # 3 is in DAFormer confirmed88
+        # self.linear_fuse = nn.Conv2d(embed_dim*4, embed_dim, kernel_size=3) # 3 is in DAFormer confirmed88
+        self.linear_fuse = nn.Conv2d(embed_dim * 4, embed_dim, kernel_size=3, padding=1)  # 3 is in DAFormer confirmed88
         self.norm = norm_layer(embed_dim)
         self.act = act_layer()
         self.dropout = nn.Dropout2d(dropout_ratio)

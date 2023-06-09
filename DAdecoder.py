@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from sync_bn.nn.modules import SynchronizedBatchNorm2d
-from bricks import resize, ConvModule, DepthWiseConv
+from .sync_bn.nn.modules import SynchronizedBatchNorm2d
+from .bricks import resize, ConvModule, DepthWiseConv
 
 import numpy as np
 from functools import partial

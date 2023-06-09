@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import math
 from functools import partial
 
-from bricks import DWConv, StochasticDepth
+from .bricks import DWConv, StochasticDepth
 
 '''
 Mix Transformer Encoder

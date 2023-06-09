@@ -6,8 +6,8 @@ Created on Wed Feb  8 16:55:27 2023
 @author: user01
 """
 
-from backbone import MixVisionTransformer
-from DAdecoder import DAFormerHead
+from .backbone import MixVisionTransformer
+from .DAdecoder import DAFormerHead
 import math
 
 import torch
@@ -55,15 +55,15 @@ class DAFormer(nn.Module):
 
         return out
     
-from torchsummary import summary
-
-model = DAFormer()
-model = model.to('cuda')
-summary(model, (3,224,224), depth=9)
-
-# x = torch.randn((1,3,224,224))
-# y = model.forward(x)
-
-# for i in range(len(y)):
-#     print(y[i].shape)
+# from torchsummary import summary
+#
+# model = DAFormer()
+# model = model.to('cuda')
+# summary(model, (3,224,224), depth=9)
+#
+# # x = torch.randn((1,3,224,224))
+# # y = model.forward(x)
+#
+# # for i in range(len(y)):
+# #     print(y[i].shape)
 
